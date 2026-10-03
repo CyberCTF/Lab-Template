@@ -88,9 +88,14 @@ locals {
       )
       runcmd = [
         ["systemctl", "enable", "--now", "qemu-guest-agent"],
-        ["systemctl", "enable", "--now", "systemd-networkd"],
+        # enable, then restart: networkd is already running at this point (cloud-init boot),
+        # so --now won't re-read the .network files we just wrote; a restart picks up the
+        # VLAN interfaces (otherwise they stay "unmanaged" with no gateway IP).
+        ["systemctl", "enable", "systemd-networkd"],
+        ["systemctl", "restart", "systemd-networkd"],
         ["sh", "-c", "echo 'net.ipv4.ip_forward=1' > /etc/sysctl.d/99-ctf.conf && sysctl -w net.ipv4.ip_forward=1"],
         ["systemctl", "enable", "--now", "nftables"],
+        # dnsmasq binds the VLAN gateway IPs, which only exist after networkd restarts.
         ["systemctl", "restart", "dnsmasq"],
         ["touch", "/var/lib/cyberctf-router-ready"],
       ]
