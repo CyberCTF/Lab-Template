@@ -11,7 +11,9 @@ resource "proxmox_virtual_environment_vm" "lab" {
   tags      = ["cyberctf", var.lab_slug]
   on_boot   = false
 
-  agent { enabled = true }
+  # IPs are discovered from the router's DHCP leases, so don't block apply on the agent
+  # (a template may not ship qemu-guest-agent).
+  agent { enabled = false }
 
   clone {
     vm_id = each.value.template_id

@@ -8,7 +8,7 @@ ssh_authorized_keys:
 %{ endif ~}
 hostname: ctf${range_number}-router
 package_update: true
-packages: [nftables, dnsmasq]
+packages: [nftables, dnsmasq, qemu-guest-agent]
 write_files:
   - path: /etc/systemd/network/10-wan.network
     content: |
@@ -62,6 +62,7 @@ write_files:
         }
       }
 runcmd:
+  - [systemctl, enable, --now, qemu-guest-agent]
   - [systemctl, enable, --now, systemd-networkd]
   - [sysctl, -w, net.ipv4.ip_forward=1]
   - [sh, -c, "echo 'net.ipv4.ip_forward=1' > /etc/sysctl.d/99-ctf.conf"]
