@@ -1,0 +1,70 @@
+#cloud-config
+# The range router: gateway, NAT, DHCP/DNS and firewall for the lab's isolated VLANs.
+# net0 is WAN (DHCP from the node bridge); net1.. are the per-VLAN interfaces, each holding
+# the .254 gateway for its 10.<range>.<vlan>.0/24. Debian 12 cloud image.
+%{ if ssh_public_key != "" ~}
+ssh_authorized_keys:
+  - ${ssh_public_key}
+%{ endif ~}
+hostname: ctf${range_number}-router
+package_update: true
+packages: [nftables, dnsmasq]
+write_files:
+  - path: /etc/systemd/network/10-wan.network
+    content: |
+      [Match]
+      Name=${wan_ifname}
+      [Network]
+      DHCP=yes
+  %{ for s in subnets ~}
+  - path: /etc/systemd/network/20-vlan${s.vlan}.network
+    content: |
+      [Match]
+      Name=${s.ifname}
+      [Network]
+      Address=${s.gateway}/24
+      ConfigureWithoutCarrier=yes
+  %{ endfor ~}
+  - path: /etc/dnsmasq.conf
+    content: |
+      bind-interfaces
+      domain-needed
+      bogus-priv
+      server=1.1.1.1
+      %{ for s in subnets ~}
+      interface=${s.ifname}
+      dhcp-range=set:v${s.vlan},10.${range_number}.${s.vlan}.100,10.${range_number}.${s.vlan}.200,12h
+      dhcp-option=tag:v${s.vlan},option:router,${s.gateway}
+      dhcp-option=tag:v${s.vlan},option:dns-server,${s.gateway}
+      %{ endfor ~}
+  - path: /etc/nftables.conf
+    permissions: "0755"
+    content: |
+      #!/usr/sbin/nft -f
+      flush ruleset
+      table inet filter {
+        chain input { type filter hook input priority 0; policy accept; }
+        chain forward {
+          type filter hook forward priority 0; policy drop;
+          ct state established,related accept
+          # Out to WAN (internet / the node LAN) is allowed by default.
+          oifname "${wan_ifname}" accept
+          # Inter-VLAN: denied by default; the range's rules are appended here.
+          %{ for r in forward_rules ~}
+          ${r}
+          %{ endfor ~}
+        }
+      }
+      table ip nat {
+        chain postrouting {
+          type nat hook postrouting priority 100; policy accept;
+          oifname "${wan_ifname}" masquerade
+        }
+      }
+runcmd:
+  - [systemctl, enable, --now, systemd-networkd]
+  - [sysctl, -w, net.ipv4.ip_forward=1]
+  - [sh, -c, "echo 'net.ipv4.ip_forward=1' > /etc/sysctl.d/99-ctf.conf"]
+  - [systemctl, enable, --now, nftables]
+  - [systemctl, restart, dnsmasq]
+  - [touch, /var/lib/cyberctf-router-ready]
