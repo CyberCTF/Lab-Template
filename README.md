@@ -2,7 +2,7 @@
 
 The single template for every CyberCTF lab. One `docker-compose.yml` defines the lab, and
 `deploy/` runs it on every target: Docker on the player's machine, a local VM, the
-player's home lab (ESXi, Proxmox) or the cloud (AWS). Implement the lab inside `build/`
+player's own server (ESXi, Proxmox) or the cloud (AWS). Implement the lab inside `build/`
 and tests in `tests/`. Use `.cursor/rules/` as the single source of truth for requirements.
 
 Replaces Lab-Starter-Pack (Docker) and Lab-Starter-Pack-VM (VM).
@@ -18,7 +18,7 @@ Replaces Lab-Starter-Pack (Docker) and Lab-Starter-Pack-VM (VM).
 - `docker-compose.yml` (root-level production compose)
 - `.ctf/`: planning/metadata artefacts (SCENARIO, EVIDENCE, metadata, timing)
 - `evidence/claim-evidence.sh`: fetches the player's evidence at startup; every lab's compose file runs it (see `.cursor/rules/apps/run/EVIDENCE-INJECTION.mdc`)
-- `deploy/`: runs the lab on a VM, a home lab or the cloud, unchanged across labs (see `deploy/README.md` and `.cursor/rules/deploy/targets/TARGETS.mdc`)
+- `deploy/`: runs the lab on a VM, a server or the cloud, unchanged across labs (see `deploy/README.md` and `.cursor/rules/deploy/targets/TARGETS.mdc`)
 
 ## Cursor Guidance
 
