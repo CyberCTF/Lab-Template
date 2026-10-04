@@ -8,7 +8,7 @@ variable "region" {
 variable "instance_type" {
   type        = string
   default     = null
-  description = "Azure VM size. Empty = sized from the lab's resources (B2s up to 4 GB, B2ms up to 8 GB, else B4ms)."
+  description = "Azure VM size. Empty = sized from the lab's resources (D2s_v3 up to 8 GB, else D4s_v3). D-series is broadly available; B-series is often capacity-restricted."
 }
 variable "disk_gb" {
   type        = number

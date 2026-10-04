@@ -42,7 +42,7 @@ locals {
   memory_mb = try(local.resources.memory_mb, 4096)
   vm_size = coalesce(
     var.instance_type,
-    local.memory_mb <= 4096 ? "Standard_B2s" : local.memory_mb <= 8192 ? "Standard_B2ms" : "Standard_B4ms",
+    local.memory_mb <= 8192 ? "Standard_D2s_v3" : "Standard_D4s_v3",
   )
   disk_gb = coalesce(var.disk_gb, try(local.resources.disk_gb, null), 30)
   tags = {
