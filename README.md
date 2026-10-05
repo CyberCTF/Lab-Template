@@ -1,46 +1,51 @@
 # Lab Template
 
-The single template for every CyberCTF lab. One `docker-compose.yml` defines the lab, and
-`deploy/` runs it on every target: Docker on the player's machine, a local VM, the
-player's own server (ESXi, Proxmox) or the cloud (AWS). Implement the lab inside `build/`
-and tests in `tests/`. Use `.cursor/rules/` as the single source of truth for requirements.
+The single template for every CyberCTF lab. A lab is described once in `isoloom.yml`
+([Isoloom](https://www.isoloom.com)): its machines, their network and services, and how each
+machine is produced as a container and as a VM. `isoloom generate` writes the files for every
+target under `.isoloom/` (Docker Compose, Vagrant, Terraform), and the CyberCTF launcher runs
+them wherever the player chooses: Docker on their machine, local VMs, their own server (ESXi,
+Proxmox), any cloud, or hosted. Use `AGENTS.md` and `rules/` as the single source of truth for
+requirements.
 
-Replaces Lab-Starter-Pack (Docker) and Lab-Starter-Pack-VM (VM).
+A complete lab built this way: [CyberCTF/invoice-portal-api](https://github.com/CyberCTF/invoice-portal-api).
 
 ## Structure
 
-- `build/`
-  - `docker-compose.dev.yml` (dev compose)
-  - `web/` (or `api/`, `database/`): each with a `Dockerfile` and `src/`
-  - `.github/workflows/publish.yml` (optional CI publish)
-  - `config/` (optional shared config)
-- `tests/`: pytest suite validating Docker health, ports, and app functionality
-- `docker-compose.yml` (root-level production compose)
-- `.ctf/`: planning/metadata artefacts (SCENARIO, EVIDENCE, metadata, timing)
-- `evidence/claim-evidence.sh`: fetches the player's evidence at startup; every lab's compose file runs it (see `.cursor/rules/apps/run/EVIDENCE-INJECTION.mdc`)
-- `deploy/`: runs the lab on a VM, a server or the cloud, unchanged across labs (see `deploy/README.md` and `.cursor/rules/deploy/targets/TARGETS.mdc`)
+- `isoloom.yml`: the lab (start from `isoloom.yml.example`)
+- `build/<machine>/`: each container machine's `Dockerfile` and `src/` (settings as `ENV` in
+  the Dockerfile: Isoloom passes no environment besides the lab's inputs)
+- `provision/<machine>.sh`: the same machine as a VM (Debian by default), run as root from
+  `/opt/isoloom`
+- `build/check/check.sh`: the lab is still solvable, run from the player's side (`checks:`)
+- `evidence/claim-evidence.sh`: claims the player's evidence with the launch token; copy it
+  next to the machine that holds the evidence (see `rules/apps/run/EVIDENCE-INJECTION.md`)
+- `.isoloom/`: generated, committed, never edited (CI fails when it's out of date)
+- `tests/`: pytest suite against `.isoloom/docker/compose.yml`
+- `.ctf/`: planning and metadata (SCENARIO, EVIDENCE, metadata.json)
 
-## Cursor Guidance
+## Run it
 
-1. Follow `.cursor/rules/apps/development/*` for lab creation and Docker details.
-2. Follow `.cursor/rules/apps/run/*` for compose, env vars, networks, and ports.
-3. Follow `.cursor/rules/apps/review/*` for QA, timing, and documentation hygiene.
-4. Generate only within `build/` and `tests/`; store transient artefacts in `.ctf/`.
+```bash
+isoloom generate
+docker compose -f .isoloom/docker/compose.yml up -d --build --wait
+docker compose -f .isoloom/docker/compose.yml --profile check run --rm isoloom-check
+```
 
-## Critical Rules (high-signal)
+VMs: `cd .isoloom/vagrant && vagrant up`. Install Isoloom with
+`cargo install --git https://github.com/isoloom/isoloom isoloom`.
 
-- Compose V2: no `version:` key; ports are env-driven; add healthchecks; keep dev/prod parity.
-- Web server must listen on the assigned internal port (e.g., Apache `Listen 3206` + VirtualHost).
-- DB init: numbered SQL files; create user before GRANT; separate DB vs global privileges.
-- Package managers must match base image (Debian=apt-get, Alpine=apk, Oracle=microdnf).
-- Quote passwords with special characters in Compose `environment:`.
-- Evidence: never hard-code it. Include the `evidence` service in both compose files and place `/run/ctf/evidence` at startup (see `EVIDENCE-INJECTION.mdc`).
+## Critical rules (high-signal)
 
-## Getting Started
+- Every machine gets `docker:` and `vm:` when it can, so the lab runs on every target.
+- A service listens on the port its machine declares; `publish:` exposes one to the player.
+- DB init: numbered SQL files; create the user before GRANT; separate DB and global privileges.
+- Package managers match the base image (Debian: apt-get, Alpine: apk, Oracle: microdnf).
+- Evidence: never hard-coded. Claimed into a machine volume (the token is single-use), placed by
+  a `docker.init` script and by the VM's provision step.
 
-1. Create `build/web/` with a minimal app and `Dockerfile`.
-2. Add `build/docker-compose.dev.yml` and root `docker-compose.yml` with env-driven ports.
-3. If needed, add `build/database/` with `init/01-*.sql`, `02-*.sql`, etc.
-4. Write tests in `tests/` to assert container health and basic functionality.
+## CI
 
-
+`validate.yml` checks the spec, that `.isoloom/` is current, runs the lab with its checks, and
+validates every Vagrant and Terraform output. `publish.yml` registers the lab with CyberCTF from
+`.ctf/metadata.json`. Both skip the template itself (no `isoloom.yml` yet).

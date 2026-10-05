@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://www.isoloom.com/schema/v1.json
+# Copy to isoloom.yml and describe the lab: its machines, their network and services, and
+# how each is produced as a container (docker:) and as a VM (vm:). Give both when you can:
+# the lab then runs on every target the CyberCTF launcher offers. Then `isoloom generate`
+# and commit .isoloom/. Reference: https://www.isoloom.com/en/docs/spec-reference
+# A complete lab built this way: github.com/CyberCTF/invoice-portal-api
+version: 1
+name: my-lab
+
+networks:
+  lab: { cidr: 10.20.0.0/24 }
+
+# Given by the launcher: the machine that claims the player's evidence needs them.
+inputs: [CTF_API_URL, CTF_LAUNCH_TOKEN]
+
+machines:
+  database:
+    networks: { lab: 32 }
+    services: [{ port: 3207, name: mysql }]
+    inputs: [CTF_API_URL, CTF_LAUNCH_TOKEN]
+    # The claimed evidence survives restarts (the launch token is single-use).
+    volumes: { evidence: /var/lib/ctf }
+    docker:
+      build: build/database
+      init: [build/database/evidence.sh]
+    vm:
+      os: debian-12
+      provision: [provision/database.sh]
+
+  web:
+    networks: { lab: 31 }
+    services: [{ port: 3206, name: web, http: true, publish: 3206 }]
+    depends_on: [database]
+    docker:
+      build: build/web
+    vm:
+      os: debian-12
+      provision: [provision/web.sh]
+
+checks:
+  - build/check/check.sh
