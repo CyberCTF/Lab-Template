@@ -5,7 +5,8 @@ name: Validate lab
 # Terraform output well formed. A lab with a container edition also comes up and passes its
 # checks; a VM-only lab (e.g. a multi-VM AD range) has no Docker edition and can't run in CI, so
 # it's covered by the isoloom/vagrant/terraform jobs alone.
-# The template itself has no isoloom.yml yet (only isoloom.yml.example): every job skips.
+# The template itself has no isoloom.yml yet (only isoloom.yml.example): every job skips. The
+# `files` job looks for them (hashFiles isn't allowed in a job-level `if`).
 on:
   pull_request:
   push:
@@ -15,9 +16,22 @@ permissions:
   contents: read
 
 jobs:
+  files:
+    runs-on: ubuntu-latest
+    outputs:
+      spec: ${{ steps.look.outputs.spec }}
+      docker: ${{ steps.look.outputs.docker }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: look
+        run: |
+          [ -f isoloom.yml ] && echo spec=true >> "$GITHUB_OUTPUT" || echo spec=false >> "$GITHUB_OUTPUT"
+          [ -f .isoloom/docker/compose.yml ] && echo docker=true >> "$GITHUB_OUTPUT" || echo docker=false >> "$GITHUB_OUTPUT"
+
   isoloom:
     runs-on: ubuntu-latest
-    if: hashFiles('isoloom.yml') != ''
+    needs: files
+    if: needs.files.outputs.spec == 'true'
     steps:
       - uses: actions/checkout@v4
       # The Isoloom release the lab is generated with.
@@ -31,7 +45,8 @@ jobs:
   # compose.yml and can't run in CI; it is covered by the isoloom, vagrant and terraform jobs.
   lab:
     runs-on: ubuntu-latest
-    if: hashFiles('.isoloom/docker/compose.yml') != ''
+    needs: files
+    if: needs.files.outputs.docker == 'true'
     env:
       COMPOSE: docker compose -f .isoloom/docker/compose.yml
     steps:
@@ -50,7 +65,8 @@ jobs:
 
   terraform:
     runs-on: ubuntu-latest
-    if: hashFiles('isoloom.yml') != ''
+    needs: files
+    if: needs.files.outputs.spec == 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
@@ -67,7 +83,8 @@ jobs:
 
   vagrant:
     runs-on: ubuntu-latest
-    if: hashFiles('isoloom.yml') != ''
+    needs: files
+    if: needs.files.outputs.spec == 'true'
     steps:
       - uses: actions/checkout@v4
       - name: Vagrantfiles parse
