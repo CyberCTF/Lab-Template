@@ -19,7 +19,9 @@ file is the entry point.
   (`inputs: [CTF_API_URL, CTF_LAUNCH_TOKEN]`, `claim-evidence.sh`) into a machine volume and
   placed in the lab's data. Never hard-coded. Without a token the lab uses its public
   development value.
-- **Checks**: `checks: [build/check/check.sh]` proves the lab is still solvable, from the
+- **Checks**: `checks:` holds declared probes (`http`, `tcp`, with `expect`) and
+  `build/check/check.sh`; Isoloom derives reachability checks from `services` and `reach`, and
+  `isoloom test` runs them all. `build/check/check.sh` proves the lab is still solvable, from the
   player's side.
 - Reference lab: `github.com/CyberCTF/invoice-portal-api`. Copy its layout.
 

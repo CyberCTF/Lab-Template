@@ -10,6 +10,11 @@ name: my-lab
 networks:
   lab: { cidr: 10.20.0.0/24 }
 
+# What every machine shares (a machine's own value wins): the VM box, the size.
+common:
+  vm: { os: debian-12 }
+  resources: { cpus: 1, memory_mb: 1024 }
+
 # Given by the launcher: the machine that claims the player's evidence needs them.
 inputs: [CTF_API_URL, CTF_LAUNCH_TOKEN]
 
@@ -24,7 +29,6 @@ machines:
       build: build/database
       init: [build/database/evidence.sh]
     vm:
-      os: debian-12
       provision: [provision/database.sh]
 
   web:
@@ -34,8 +38,18 @@ machines:
     docker:
       build: build/web
     vm:
-      os: debian-12
       provision: [provision/web.sh]
 
+# Checks prove the lab behaves, from the player's side, on every target (`isoloom test`).
+# Isoloom derives the reachability ones from `services` and `reach`; declare what it can't
+# know (a status code, a path), and keep a script for what only a program can tell (a login,
+# the intended path still works).
 checks:
+  - name: the portal refuses a request without its key
+    http: http://web:3206/api/invoices/1
+    expect: 401
   - build/check/check.sh
+
+# Shown when the lab is up (`isoloom run`, the launcher's welcome card).
+message: |
+  The portal answers at http://localhost:{{ machines.web.services.0.publish }}/.

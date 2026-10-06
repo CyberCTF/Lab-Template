@@ -17,7 +17,10 @@ A complete lab built this way: [CyberCTF/invoice-portal-api](https://github.com/
   the Dockerfile: Isoloom passes no environment besides the lab's inputs)
 - `provision/<machine>.sh`: the same machine as a VM (Debian by default), run as root from
   `/opt/isoloom`
-- `build/check/check.sh`: the lab is still solvable, run from the player's side (`checks:`)
+- `checks:` in `isoloom.yml`: declared probes (`http`, `tcp`) for what the spec can't know, and
+  `build/check/check.sh` for what only a program can tell (the intended path still works), run
+  from the player's side by `isoloom test`; reachability checks are derived from the spec
+- `common:`: what every machine shares (the VM box, the size); `message:`: shown when the lab is up
 - `evidence/claim-evidence.sh`: claims the player's evidence with the launch token; copy it
   next to the machine that holds the evidence (see `rules/apps/run/EVIDENCE-INJECTION.md`)
 - `.isoloom/`: generated, committed, never edited (CI fails when it's out of date)
@@ -27,13 +30,15 @@ A complete lab built this way: [CyberCTF/invoice-portal-api](https://github.com/
 ## Run it
 
 ```bash
-isoloom generate
-docker compose -f .isoloom/docker/compose.yml up -d --build --wait
-docker compose -f .isoloom/docker/compose.yml --profile check run --rm isoloom-check
+isoloom run docker        # generate, build and start (prints the lab's message)
+isoloom test docker       # the lab's checks, plus the ones Isoloom derives from the spec
+isoloom connect web       # a shell on a machine
+isoloom down docker
 ```
 
-VMs: `cd .isoloom/vagrant && vagrant up`. Install Isoloom with
-`cargo install --git https://github.com/isoloom/isoloom isoloom`.
+VMs: `isoloom run vagrant`. Install Isoloom from the
+[releases](https://github.com/isoloom/isoloom/releases) or
+`curl -fsSL https://raw.githubusercontent.com/isoloom/isoloom/main/install.sh | sh`.
 
 ## VM-only labs (AD ranges)
 
@@ -64,7 +69,7 @@ it the same way, with these differences:
 
 ## CI
 
-`validate.yml` checks the spec, that `.isoloom/` is current, runs the lab with its checks, and
+`validate.yml` checks the spec, that `.isoloom/` is current, runs the lab with `isoloom test`, and
 validates every Vagrant and Terraform output. `publish.yml` registers the lab with CyberCTF through
 the shared, hardened `CyberCTF/publish-lab-action` (the backend endpoints live in that private
 action, not here) and waits for a maintainer to approve it via the `production` environment, so a
