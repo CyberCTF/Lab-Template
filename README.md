@@ -35,6 +35,24 @@ docker compose -f .isoloom/docker/compose.yml --profile check run --rm isoloom-c
 VMs: `cd .isoloom/vagrant && vagrant up`. Install Isoloom with
 `cargo install --git https://github.com/isoloom/isoloom isoloom`.
 
+## VM-only labs (AD ranges)
+
+Some labs are VM-only: a multi-VM Windows Active Directory range has no container form. Describe
+it the same way, with these differences:
+
+- Machines carry only `vm:` (no `docker:`): `os: windows-server-2019` (or another), and a
+  per-machine `provision:` step that only sets up WinRM so the controller can reach them.
+- The lab is provisioned at the environment level: a top-level `provision:` step points at an
+  Ansible playbook with its `requirements:` and inventory `groups`. Isoloom brings up a small
+  Debian controller that installs Ansible, generates the inventory (hosts, addresses, WinRM), and
+  runs the playbook against the Windows machines over WinRM.
+- No `build/`, no container evidence injection, no `tests/` (those run against the Docker
+  edition, which a VM-only lab does not have). Keep only the provisioning and the `isoloom.yml`.
+- CI covers it without running it: the `isoloom` job validates the spec and that `.isoloom/` is
+  current, `vagrant` parses the Vagrantfiles, `terraform` validates the generated modules; the
+  live `lab` job is skipped (no `compose.yml`). A multi-VM Windows range cannot run in a CI
+  runner, so it is verified by generation, not by a live boot.
+
 ## Critical rules (high-signal)
 
 - Every machine gets `docker:` and `vm:` when it can, so the lab runs on every target.
