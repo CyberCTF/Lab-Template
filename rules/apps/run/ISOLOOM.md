@@ -120,8 +120,9 @@ Give every machine **both** `docker:` and `vm:` when possible. The lab then runs
 
 ```bash
 isoloom generate                                     # after any change to isoloom.yml
-docker compose -f .isoloom/docker/compose.yml up -d --build --wait
-docker compose -f .isoloom/docker/compose.yml --profile check run --rm isoloom-check
-docker compose -f .isoloom/docker/compose.yml down -v
-cd .isoloom/vagrant && vagrant up                    # one VM per machine
+isoloom run docker .                                 # up, then the message
+isoloom test docker .                                # declared + derived checks, the script
+isoloom connect docker . web                         # a shell on a machine
+isoloom down docker .
+isoloom run vagrant .                                # one VM per machine
 ```

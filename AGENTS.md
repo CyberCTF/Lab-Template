@@ -27,10 +27,10 @@ file is the entry point.
 
 ```bash
 isoloom generate
-docker compose -f .isoloom/docker/compose.yml up -d --build --wait
-docker compose -f .isoloom/docker/compose.yml --profile check run --rm isoloom-check
-docker compose -f .isoloom/docker/compose.yml down -v
-cd .isoloom/vagrant && vagrant up        # VM edition, one VM per machine
+isoloom run docker .                     # up, then the message
+isoloom test docker .                    # every check, from the player's side
+isoloom down docker .
+isoloom run vagrant .                    # VM edition, one VM per machine
 pytest tests/                            # runs against .isoloom/docker/compose.yml
 ```
 
