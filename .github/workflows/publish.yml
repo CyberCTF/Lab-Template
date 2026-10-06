@@ -11,8 +11,8 @@ on:
 
 jobs:
   register:
-    # The template itself has no lab to register.
-    if: hashFiles('.ctf/metadata.json') != ''
+    # Skip the template itself (by name; hashFiles in a job-level if breaks with environment).
+    if: github.repository != 'CyberCTF/Lab-Template'
     runs-on: ubuntu-latest
     environment: production
     permissions:
