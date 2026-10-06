@@ -27,8 +27,8 @@ Before declaring ANY task complete, you MUST verify:
 - [ ] Every machine has `docker:` and `vm:` (or a recorded reason for one edition only)
 - [ ] `inputs: [CTF_API_URL, CTF_LAUNCH_TOKEN]` at the top and on the claiming machine, with a `volumes:` path for the evidence
 - [ ] Only the entry point has `publish:`, on the same port as its service
-- [ ] `checks: [build/check/check.sh]` passes on Docker (`--profile check run --rm isoloom-check`)
-- [ ] VM edition provisions (`cd .isoloom/vagrant && vagrant up`) and the check passes from a machine
+- [ ] `checks: [build/check/check.sh]` passes on Docker (`isoloom test docker .`)
+- [ ] VM edition provisions (`isoloom run vagrant .`) and the check passes from a machine
 
 ## DOCKER VERIFICATION CHECKLIST
 
@@ -39,7 +39,7 @@ Before declaring ANY task complete, you MUST verify:
 - [ ] Services listen on their declared `services:` ports
 - [ ] `depends_on` lists the machines each machine needs
 - [ ] Apache/Nginx configured to listen on custom port (not just 80)
-- [ ] `docker compose -f .isoloom/docker/compose.yml up -d --build --wait` comes up healthy
+- [ ] `isoloom run docker .` comes up healthy
 
 ## VM VERIFICATION CHECKLIST
 

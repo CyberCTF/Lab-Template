@@ -86,8 +86,8 @@ machines:
 ## Re-init (document this in README)
 
 ```bash
-docker compose -f .isoloom/docker/compose.yml down -v
-docker compose -f .isoloom/docker/compose.yml up -d --build --wait
+isoloom down docker .
+isoloom run docker .
 ```
 
 - MySQL init scripts only run on a fresh data directory. On the VM edition, `provision/database.sh` loads them when the tables are missing.

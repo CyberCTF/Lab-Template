@@ -40,7 +40,7 @@ Follow this checklist to validate the lab without making code/config changes. Do
 4) Tests
    - Coverage per `TEST-REQUIREMENTS.md`
    - Retry behavior per `TEST-RETRY.md` (env-driven; no hardcoded values)
-   - Cleanup per `TEST-EXECUTION.md` (`docker compose -f .isoloom/docker/compose.yml down -v` via env)
+   - Cleanup per `TEST-EXECUTION.md` (`isoloom down docker .` via env)
    - Phase timing logs per `PHASE-TIMING.md`
 
 ## Outputs

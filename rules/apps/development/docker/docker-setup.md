@@ -44,7 +44,7 @@ writes `.isoloom/docker/compose.yml` from it. Never write a compose file by hand
 
 ```bash
 isoloom generate
-docker compose -f .isoloom/docker/compose.yml up -d --build --wait
-docker compose -f .isoloom/docker/compose.yml --profile check run --rm isoloom-check
-docker compose -f .isoloom/docker/compose.yml down -v
+isoloom run docker .
+isoloom test docker .
+isoloom down docker .
 ```

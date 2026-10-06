@@ -7,8 +7,8 @@ The lab's GitHub Actions workflows (validate, publish) and the mandated player-f
 - `.github/workflows/validate.yml`, on every PR and push to `main`:
   - installs Isoloom at a pinned commit, runs `isoloom validate` and `isoloom check`
     (fails when `.isoloom/` is out of date: run `isoloom generate` and commit);
-  - brings the Docker edition up (`docker compose -f .isoloom/docker/compose.yml up -d --build --wait`)
-    with the development evidence and runs the checks (`--profile check run --rm isoloom-check`);
+  - brings the Docker edition up (`isoloom run docker .`)
+    with the development evidence and runs the checks (`isoloom test docker .`);
   - runs `terraform validate` on every generated `main.tf` and parses every generated Vagrantfile.
 - `.github/workflows/publish.yml`, on push to `main`: registers the lab with CyberCTF
   (CyberBackend `publishLab`) from `.ctf/metadata.json` at the pushed commit. It derives the CPU
@@ -38,10 +38,10 @@ bring back. No vulnerability name, no hint.>
 ```bash
 git clone https://github.com/CyberCTF/<slug>
 cd <slug>
-docker compose -f .isoloom/docker/compose.yml up -d --build --wait
+isoloom run docker .
 ```
 
-With VMs: `cd .isoloom/vagrant && vagrant up`. The lab is described in `isoloom.yml`
+With VMs: `isoloom run vagrant .`. The lab is described in `isoloom.yml`
 ([Isoloom](https://www.isoloom.com)).
 
 **Access**: http://localhost:<publish port>

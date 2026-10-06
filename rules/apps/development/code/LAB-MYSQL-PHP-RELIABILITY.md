@@ -102,7 +102,7 @@ Prevent "table missing", empty DB, UNION breakage, and mysqli fatals in PHP+MySQ
 
 - To force init scripts to run:  
 
-  `docker compose -f .isoloom/docker/compose.yml down -v && docker compose -f .isoloom/docker/compose.yml up -d --build --wait`
+  `isoloom down docker . && isoloom run docker .`
 
 - Add a quick MySQL check command in README to verify data presence.
 
@@ -126,7 +126,7 @@ Prevent "table missing", empty DB, UNION breakage, and mysqli fatals in PHP+MySQ
 
 - Empty results or missing tables:
 
-  - `docker compose -f .isoloom/docker/compose.yml down -v && docker compose -f .isoloom/docker/compose.yml up -d --build --wait`
+  - `isoloom down docker . && isoloom run docker .`
 
 - UNION not working:
 

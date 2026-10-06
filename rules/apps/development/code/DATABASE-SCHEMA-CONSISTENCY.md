@@ -48,7 +48,7 @@ Database schema consistency and safe MySQL init: prevent runtime fatals, guarant
 
 - MySQL init scripts run ONLY on a fresh data dir; document the reset command:
 
-  - `docker compose -f .isoloom/docker/compose.yml down -v && docker compose -f .isoloom/docker/compose.yml up -d --build --wait`
+  - `isoloom down docker . && isoloom run docker .`
 
 - The `web` machine MUST list `database` in `depends_on` in `isoloom.yml`.
 
@@ -163,7 +163,7 @@ ENV DB_HOST=database \
 
 ## Troubleshooting
 
-- If "table doesn't exist" persists: run `docker compose -f .isoloom/docker/compose.yml down -v && docker compose -f .isoloom/docker/compose.yml up -d --build --wait`.
+- If "table doesn't exist" persists: run `isoloom down docker . && isoloom run docker .`.
 
 - Confirm DB name in env equals the one created in `01-create-databases.sql`.
 

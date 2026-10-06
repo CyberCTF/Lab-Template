@@ -40,7 +40,7 @@ review (`vagrant up` + `build/check/check.sh`), not by pytest.
 - Graceful handling of cleanup failures
 
 #### Cleanup Steps
-Before every test run, execute `docker compose -f .isoloom/docker/compose.yml down -v` to ensure clean state:
+Before every test run, execute `isoloom down docker .` to ensure clean state:
 1. Stop all running containers
 2. Remove volumes for fresh state
 3. Clean up networks

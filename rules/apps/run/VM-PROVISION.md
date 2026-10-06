@@ -42,7 +42,7 @@ version, or make the lab Docker-only and say so in the review.
 
 ```bash
 isoloom generate
-cd .isoloom/vagrant && vagrant up
+isoloom run vagrant .
 vagrant ssh web -c 'cd /opt/isoloom && sh build/check/check.sh'
 vagrant destroy -f
 ```

@@ -14,7 +14,7 @@ Non-functional requirements: TZ/UTF-8, structured logging, env-driven retries/cl
 
 ## Tests and Robustness
 
-- Before each test execution: perform cleanup (`docker compose -f .isoloom/docker/compose.yml down -v`), driven by environment variables (no hardcoding).
+- Before each test execution: perform cleanup (`isoloom down docker .`), driven by environment variables (no hardcoding).
 - Centralized retries/backoff 100% configurable via env (no hardcoded values).
 - No hardcoded URLs in tests. Use `APP_BASE_URL` (defaults to the published port).
 - Tests must wait for readiness (`up --wait`, then the health endpoint with backoff).
