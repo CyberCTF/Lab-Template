@@ -65,5 +65,10 @@ it the same way, with these differences:
 ## CI
 
 `validate.yml` checks the spec, that `.isoloom/` is current, runs the lab with its checks, and
-validates every Vagrant and Terraform output. `publish.yml` registers the lab with CyberCTF from
-`.ctf/metadata.json`. Both skip the template itself (no `isoloom.yml` yet).
+validates every Vagrant and Terraform output. `publish.yml` registers the lab with CyberCTF through
+the shared, hardened `CyberCTF/publish-lab-action` (the backend endpoints live in that private
+action, not here) and waits for a maintainer to approve it via the `production` environment, so a
+push alone never publishes. Both skip the template itself (no `isoloom.yml` yet).
+
+Per lab repo, set up once: a `production` environment with required reviewers, and the
+organization secrets `CYBERAUTH_CLIENT_ID` / `CYBERAUTH_CLIENT_SECRET` scoped to it.
