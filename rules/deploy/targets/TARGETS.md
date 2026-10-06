@@ -25,8 +25,10 @@ Docs: https://www.isoloom.com/en/docs/targets
 - `.isoloom/` is committed and never edited. CI (`validate.yml`) runs `isoloom check`,
   `terraform validate` on every `main.tf` and parses every Vagrantfile.
 - Give every machine `docker:` and `vm:` so every target is available. A lab without `docker:`
-  on some machine is VM-only: no hosted, no cloud (cloud VMs per machine are planned). A lab
-  without `vm:` still runs everywhere through Docker on one VM.
+  on some machine is VM-only: no hosted (hosting runs the Docker edition), but it still runs on
+  local VMs, a server, and the clouds whose `cloud-vm` module Isoloom generates for it (aws and
+  azure take the full model; the rest only the topologies they can hold, see
+  `../metadata/metadata.md`). A lab without `vm:` still runs everywhere through Docker on one VM.
 - Match `providers` in `.ctf/metadata.json` to what the lab supports (see
   `../metadata/metadata.md`).
 - Services are reached from the attack box on the lab network. Only the player's entry point

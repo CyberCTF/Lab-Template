@@ -53,8 +53,9 @@ Define lab metadata fields and required values for publishing; enforce examples 
   - Where the lab can run besides Docker on the player's machine. The launcher runs the matching output of `isoloom.yml` (see `deploy/targets/TARGETS.md`).
   - Allowed: `virtualbox`, `vmware_desktop`, `parallels`, `hyperv`, `libvirt` (local VM), `vmware_esxi`, `proxmox` (server), `aws`, `azure`, `gcp`, `digitalocean`, `linode`, `oci` (cloud), `hosted`.
   - Default for a lab whose machines all have `docker:` and `vm:`: all of them.
-  - A VM-only lab (some machine without `docker:`) drops `hosted` and the clouds.
-  - Example: `["virtualbox", "vmware_desktop", "parallels", "hyperv", "libvirt", "vmware_esxi", "proxmox", "aws", "azure", "gcp", "digitalocean", "linode", "oci", "hosted"]`
+  - A VM-only lab (some machine without `docker:`) drops `hosted` (hosting runs the Docker edition). It keeps the clouds that Isoloom can model it on, not none: a cloud belongs here only when `isoloom generate` writes a `.isoloom/cloud-vm/<cloud>/` module for the lab. `aws` and `azure` take the full model (multi-NIC, Windows, controller); `gcp` takes single-NIC Linux with a controller (not multi-NIC or Windows yet); `digitalocean` takes a single-network single-VM lab; `linode` and `oci` take single-network Linux. List the clouds whose module is generated and leave out the rest. Generate the lab and check `.isoloom/cloud-vm/` to see which were produced.
+  - Example (a container lab, every target): `["virtualbox", "vmware_desktop", "parallels", "hyperv", "libvirt", "vmware_esxi", "proxmox", "aws", "azure", "gcp", "digitalocean", "linode", "oci", "hosted"]`
+  - Example (a VM-only Windows AD range): `["virtualbox", "vmware_desktop", "parallels", "hyperv", "libvirt", "vmware_esxi", "proxmox", "aws", "azure"]`
 
 - Machine sizes are not metadata: set `resources:` per machine in `isoloom.yml` (defaults 1 CPU, 1024 MB, 20 GB). Only raise them when the stack needs it: bigger hosts cost players money in the cloud.
 
