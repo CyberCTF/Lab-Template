@@ -1,8 +1,10 @@
 name: Validate lab
 
 # The lab is its isoloom.yml (https://www.isoloom.com): on every PR and push to main, the spec
-# must be valid, the generated files under .isoloom/ current, the Docker edition must come up
-# and pass its checks, and every generated Vagrant and Terraform output must be well formed.
+# must be valid, the generated files under .isoloom/ current, and every generated Vagrant and
+# Terraform output well formed. A lab with a container edition also comes up and passes its
+# checks; a VM-only lab (e.g. a multi-VM AD range) has no Docker edition and can't run in CI, so
+# it's covered by the isoloom/vagrant/terraform jobs alone.
 # The template itself has no isoloom.yml yet (only isoloom.yml.example): every job skips.
 on:
   pull_request:
@@ -25,9 +27,11 @@ jobs:
         run: isoloom check
 
   # Runs the lab for real (development evidence): it must come up healthy and pass its checks.
+  # Only labs with a container edition — a VM-only lab (e.g. a multi-VM AD range) has no
+  # compose.yml and can't run in CI; it is covered by the isoloom, vagrant and terraform jobs.
   lab:
     runs-on: ubuntu-latest
-    if: hashFiles('isoloom.yml') != ''
+    if: hashFiles('.isoloom/docker/compose.yml') != ''
     env:
       COMPOSE: docker compose -p lab -f .isoloom/docker/compose.yml
     steps:
@@ -53,7 +57,7 @@ jobs:
           terraform_version: 1.16.5
       - name: validate (Proxmox, every cloud)
         run: |
-          for m in .isoloom/docker-vm/proxmox .isoloom/proxmox .isoloom/cloud-docker/*; do
+          for m in .isoloom/docker-vm/proxmox .isoloom/proxmox .isoloom/cloud-docker/* .isoloom/cloud-vm/*; do
             [ -f "$m/main.tf" ] || continue
             echo "== $m"
             terraform -chdir="$m" init -backend=false -input=false >/dev/null
