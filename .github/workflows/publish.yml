@@ -19,7 +19,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: isoloom/isoloom@v0.8.0
+      - uses: isoloom/isoloom@v0.8.1
       # Generate so providers are derived from a current tree (CI already checks it is in sync).
       - run: isoloom generate
       - uses: CyberCTF/publish-lab-action@v1
