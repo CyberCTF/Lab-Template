@@ -1,28 +1,49 @@
 name: Register lab
 
 # Registers this lab with CyberCTF at the pushed commit, through the shared, hardened
-# CyberCTF/publish-lab-action. The backend and token endpoints live in that private action, not
-# here, and the publish waits for a maintainer to approve it (the `production` environment), so a
-# push can never put a lab in the catalogue on its own.
+# CyberCTF/publish-lab-action. The backend and token endpoints come from organization secrets,
+# not this file, and the publish waits for a maintainer to approve it (the `production`
+# environment), so a push can never put a lab in the catalogue on its own.
+#
+# A lab not yet approved (private, not in the publishing secrets' repository list) skips the
+# registration with a notice instead of failing.
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
+# One registration waiting for approval per lab: a newer push replaces the older pending run.
+concurrency:
+  group: register-lab
+  cancel-in-progress: true
+
 jobs:
   register:
-    # Skip the template itself (by name; hashFiles in a job-level if breaks with environment).
     if: github.repository != 'CyberCTF/Lab-Template'
     runs-on: ubuntu-latest
     environment: production
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: isoloom/isoloom@v0.8.1
-      # Generate so providers are derived from a current tree (CI already checks it is in sync).
-      - run: isoloom generate
-      - uses: CyberCTF/publish-lab-action@v1
+      - name: Publishing enabled for this repository?
+        id: gate
+        env:
+          CLIENT_ID: ${{ secrets.CYBERAUTH_CLIENT_ID }}
+        run: |
+          if [ -n "$CLIENT_ID" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Not registered: this lab isn't approved for the catalogue yet (it isn't in the CyberCTF publishing secrets' repository list)."
+          fi
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: isoloom/isoloom@v0.9.0
+      - if: steps.gate.outputs.enabled == 'true'
+        run: isoloom generate
+      - if: steps.gate.outputs.enabled == 'true'
+        uses: CyberCTF/publish-lab-action@v1
         with:
           client_id: ${{ secrets.CYBERAUTH_CLIENT_ID }}
           client_secret: ${{ secrets.CYBERAUTH_CLIENT_SECRET }}
